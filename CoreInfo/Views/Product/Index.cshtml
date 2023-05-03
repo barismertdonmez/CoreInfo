@@ -1,0 +1,219 @@
+﻿@model List<Product>
+
+@*@section Css{
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap4.min.css" />
+}*@
+@section Scripts{
+    @*<script src="//cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>*@
+    <script src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap4.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            //DataTable
+            //$('#myTable').DataTable();
+
+            //GetById
+            $(".btn-get-product").on("click", function () {
+                debugger;
+                var formData = new FormData();
+                var productid = $(this).attr("data-productid");
+                var url = '@Url.Action("GetDetailsByID","Product")' + '/' + productid;
+                $.ajax({
+                    type: 'GET',
+                    url: url,
+                    contentType: false,
+                    processData: false,
+                    cache: false,
+                    data: formData,
+                    success: function (response) {
+                        if (response.responseCode == 0) {
+                            var product = JSON.parse(response.responseMessage);
+                            $("#productName").val(product.ProductName);
+                            $("#price").val(product.Price);
+                            $("#stock").val(product.Stock);
+                            $("#hdn-customer-id").val(product.ID);
+                        }
+                        else {
+                            bootbox.alert(response.responseMessage);
+                        }
+                    },
+                    error: errorCallback
+                })
+            })
+
+            //Add
+            $("#btn-insert-product").on("click", function () {
+                var formData = new FormData();
+                formData.append("productName", $("#productName").val());
+                formData.append("price", $("#price").val());
+                formData.append("stock", $("#stock").val());
+                $.ajax({
+                    type: 'POST',
+                    url: 'Product/Add',
+                    contentType: false,
+                    processData: false,
+                    cache: false,
+                    data: formData,
+                    success: successCallBack,
+                    error: errorCallback
+                });
+            });
+
+
+            //Update
+            $("#btn-update-product").on("click", function () {
+                debugger;
+                alert("alert", "alert")
+                var formData = new FormData();
+                formData.append("id", $("#hdn-product-id").val());
+                formData.append("productName", $("#productName").val());
+                formData.append("price", $("#price").val());
+                formData.append("stock", $("#stock").val());
+                $.ajax({
+                    type: 'PUT',
+                    url: 'Product/Update',
+                    contentType: false,
+                    processData: false,
+                    cache: false,
+                    data: formData,
+                    success: successCallBack,
+                    error: errorCallback,
+                })
+            })
+
+            //Delete
+            $("#btn-delete-product").on("click", function () {
+                debugger;
+                var formData = new FormData();
+                formData.append("id", $("#hdn-product-id").val());
+                $.ajax({
+                    type: 'DELETE',
+                    url: 'Product/Delete',
+                    contentType: false,
+                    processData: false,
+                    cache: false,
+                    data: formData,
+                    success: successCallBack,
+                    error: errorCallback,
+                })
+            })
+
+            //ErrorMessage
+            function errorCallback() {
+                bootbox.alert("Bir Hata Oluştu")
+            }
+
+            //ResetForm
+            function resetForm() {
+                $("#hdn-product-id").val("");
+                $("#productName").val("");
+                $("#price").val("");
+                $("#stock").val("");
+            }
+
+            //SuccessResponse
+            function successCallBack(response) {
+                if (response.responseCode == 0) {
+                    resetForm();
+                    bootbox.alert(response.responseMessage, function () {
+                        //Herhangi bir operasyon olucaksa burada belirtebilirsiniz. Sayfa Yenilemek gibi vs.
+                    })
+                }
+                else {
+                    bootbox.alert(response.responseMessage)
+                }
+            }
+
+            $("#btn-refresh-product").on("click",function(){
+                debugger;
+                $.ajax({
+                    type: 'GET',
+                    url: 'Product/Refresh',
+                    dataType: 'JSON',
+                    success: function (xml) {
+                        setInterval('refreshPage()', 5000);
+                    }
+                });
+            })
+
+            function refreshPage() {
+                location.reload(true);
+            }
+            
+
+        });
+    </script>
+}
+    <a href="javascript:void(0)" class="btn btn-info" id="btn-refresh-product">Yenile</a>
+    <div class="row">
+        <div class="col-sm-12">
+            <form>
+                <input type="hidden" id="hdn-product-id" />
+                <div class="row">
+                    <div class="col-sm-12">
+                        <label for="productName" class="form-label">ProductName</label>
+                        <input type="text" class="form-control" id="productName" placeholder="İsim Giriniz" />
+                        <div class="invalid-feedback">İsim Zorunludur</div>
+                    </div>
+
+                    <div class="col-sm-12">
+                        <label for="price" class="form-label">Price</label>
+                        <input type="text" class="form-control" id="price" placeholder="Soyisim Giriniz" />
+                        <div class="invalid-feedback">Soyisim Zorunludur</div>
+                    </div>
+
+                    <div class="col-sm-12">
+                        <label for="stock" class="form-label">Stock</label>
+                        <input type="text" class="form-control" id="stock" placeholder="Ülke Giriniz" />
+                        <div class="invalid-feedback">Ülke Zorunludur</div>
+                    </div>
+                </div>
+
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <a href="javascript:void(0)" class="btn btn-primary" id="btn-insert-product">Kaydet</a>
+                            </td>
+                            <td>
+                                <a href="javascript:void(0)" class="btn btn-info" id="btn-update-product">Güncelle</a>
+                            </td>
+                            <td>
+                                <a href="javascript:void(0)" class="btn btn-danger" id="btn-delete-product">Sil</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </form>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" width="100% cellpadding="0">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>productName</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Operasyonlar</th>
+                    </tr>
+                </thead>
+
+                <tbody id="customerList">
+                @foreach (var product in Model)
+                {
+                    <tr>
+                        <td>@product.ID</td>
+                        <td>@product.ProductName</td>
+                        <td>@product.Price</td>
+                        <td>@product.Stock</td>
+                        <td>
+                            <a data-productid="@product.ID" class="btn btn-success btn-get-product" >Ürün Getir</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

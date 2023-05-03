@@ -1,0 +1,333 @@
+﻿@model List<Customer>
+
+@*@section Css{
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap4.min.css" />
+}*@
+    @section Scripts{
+    @*<script src="//cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js"></script>*@
+    <script src="https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap4.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            //DataTable
+            //$('#myTable').DataTable();
+
+            //GetById
+            $(".btn-get-customer").on("click", function () {
+                debugger;
+                var formData = new FormData();
+                var customerid = $(this).attr("data-customerid");
+                var url = '@Url.Action("GetDetailsByID","Customer")' + '/' + customerid;
+                $.ajax({
+                    type: 'GET',
+                    url: url,
+                    contentType: false,
+                    processData: false,
+                    cache: false,
+                    data: formData,
+                    success: function (response) {
+                        if (response.responseCode == 0) {
+                            var customer = JSON.parse(response.responseMessage);
+                            $("#name").val(customer.Name);
+                            $("#surName").val(customer.SurName);
+                            $("#country").val(customer.Country);
+                            $("#phoneNumber").val(customer.PhoneNumber);
+                            $("#hdn-customer-id").val(customer.ID);
+                        }
+                        else {
+                            bootbox.alert(response.responseMessage);
+                        }
+                    },
+                    error: errorCallback
+                })
+            })
+
+            //Add
+            $("#btn-insert-customer").on("click", function () {
+                var formData = new FormData();
+                formData.append("name", $("#name").val());
+                formData.append("surName", $("#surname").val());
+                formData.append("country", $("#country").val());
+                formData.append("phoneNumber", $("#phoneNumber").val());
+                $.ajax({
+                    type: 'POST',
+                    url: 'Customer/Add',
+                    contentType: false,
+                    processData: false,
+                    cache: false,
+                    data: formData,
+                    success: successCallBack,
+                    error: errorCallback
+                });
+            });
+
+            //Update
+            $("#btn-update-customer").on("click", function () {
+                debugger;
+                alert("alert","alert")
+                var formData = new FormData();
+                formData.append("id", $("#hdn-customer-id").val());
+                formData.append("name",$("#name").val());
+                formData.append("surName", $("#surname").val());
+                formData.append("country", $("#country").val());
+                formData.append("phoneNumber", $("#phoneNumber").val());
+                $.ajax({
+                    type: 'PUT',
+                    url: 'Customer/Update',
+                    contentType: false, 
+                    processData: false,
+                    cache: false,
+                    data: formData,
+                    success: successCallBack,
+                    error: errorCallback,
+                })
+            })
+
+            //Delete
+            $("#btn-delete-customer").on("click", function () {
+                debugger;
+                var formData = new FormData();
+                formData.append("id", $("#hdn-customer-id").val());
+                $.ajax({
+                    type: 'DELETE',
+                    url: 'Customer/Delete',
+                    contentType: false,
+                    processData: false,
+                    cache: false,
+                    data: formData,
+                    success: successCallBack,
+                    error: errorCallback,
+                })
+            })
+
+            //ErrorMessage
+            function errorCallback() {
+                bootbox.alert("Bir Hata Oluştu")
+            }
+
+            //ResetForm
+            function resetForm() {
+                $("#hdn-customer-id").val("");
+                $("#name").val("");
+                $("#surName").val("");
+                $("#country").val("");
+                $("#phoneNumber").val("");
+            }
+
+            //SuccessResponse
+            function successCallBack(response) {
+                if (response.responseCode == 0) {
+                    resetForm();
+                    bootbox.alert(response.responseMessage, function () {
+                        //Herhangi bir operasyon olucaksa burada belirtebilirsiniz. Sayfa Yenilemek gibi vs.
+                    })
+                }
+                else {
+                    bootbox.alert(response.responseMessage)
+                }
+            }
+
+        });
+    </script>
+}
+
+    <div class="row">
+        <div class="col-sm-12">
+            <form>
+                <input type="hidden" id="hdn-customer-id" />
+                <div class="row">
+                    <div class="col-sm-6">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="name" placeholder="İsim Giriniz" />
+                        <div class="invalid-feedback">İsim Zorunludur</div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label for="surName" class="form-label">SurName</label>
+                        <input type="text" class="form-control" id="surName" placeholder="Soyisim Giriniz" />
+                        <div class="invalid-feedback">Soyisim Zorunludur</div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label for="country" class="form-label">Country</label>
+                        <input type="text" class="form-control" id="country" placeholder="Ülke Giriniz" />
+                        <div class="invalid-feedback">Ülke Zorunludur</div>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label for="phoneNumber" class="form-label">Phone Number</label>
+                        <input type="text" class="form-control" id="phoneNumber" placeholder="Telefon Giriniz" />
+                        <div class="invalid-feedback">Telefon Zorunludur</div>
+                    </div>
+                </div>
+
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <a href="javascript:void(0)" class="btn btn-primary" id="btn-insert-customer">Kaydet</a>
+                            </td>
+                            <td>
+                                <a href="javascript:void(0)" class="btn btn-info" id="btn-update-customer">Güncelle</a>
+                            </td>
+                            <td>
+                                <a href="javascript:void(0)" class="btn btn-danger" id="btn-delete-customer">Sil</a>
+                            </td>
+                        </tr>
+                    </tbody>
+
+                </table>
+            </form>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" width="100% cellpadding="0">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Adi</th>
+                        <th>Soyadi</th>
+                        <th>Ulke</th>
+                        <th>Telefon</th>
+                        <th>Operasyonlar</th>
+                    </tr>
+                </thead>
+
+                <tbody id="customerList">
+                @foreach (var customer in Model)
+                {
+                    <tr>
+                        <td>@customer.ID</td>
+                        <td>@customer.Name</td>
+                        <td>@customer.SurName</td>
+                        <td>@customer.Country</td>
+                        <td>@customer.PhoneNumber</td>
+                        <td>
+                            <a data-customerid="@customer.ID" class="btn btn-success btn-get-customer" id="btn-get-customer">Müşteri Getir</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+    @*<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Person List</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <style>
+            .asd{
+                margin-left: 0px;
+                margin-right: 0px;
+
+            }
+        </style>
+    </head>
+    <body>
+        <div class="row">
+            <div class="col-md-12">
+                <form>
+                    <input type="hidden" id="hdn-customer-id" />
+                    <div class="row asd">
+                        <div class="col-sm-6">
+                            <label for="name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="name" placeholder="İsim girin" for="name" value="" />
+                            <div class="invalid-feedback">İsim Gereklidir.</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="surname" class="form-label">SurName</label>
+                            <input type="text" class="form-control" id="surname" placeholder="Soyisim girin" for="surname" value="" />
+                            <div class="invalid-feedback">Soyisim Gereklidir.</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="country" class="form-label">Country</label>
+                            <input type="text" class="form-control" id="country" placeholder="Soyisim girin" for="country" value="" />
+                            <div class="invalid-feedback">Soyisim Gereklidir.</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="phoneNumber" class="form-label">PhoeNumber</label>
+                            <input type="text" class="form-control" id="phoneNumber" placeholder="Soyisim girin" for="phoneNumber" value="" />
+                            <div class="invalid-feedback">Soyisim Gereklidir.</div>
+                        </div>
+                    </div>
+
+                    <table class="table tablebtn">
+                        <tbody class="justify-content-between">
+                            <tr>
+                                <td>
+                                    <a href="javascript:void(0)" class="btn btn-primary" id="btn-insert-customer">Kaydet</a>
+                                </td>
+                                <td>
+                                    <a href="javascript:void(0)" class="btn btn-info" id="btn-update-customer">Güncelle</a>
+                                </td>
+                                <td>
+                                    <a href="javascript:void(0)" class="btn btn-danger" id="btn-delete-customer">Sil</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+
+                </form>
+            </div>
+        </div>
+
+        <br />
+        <br />
+
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="container">
+                    <div class="jumbotron">
+                        <h1 class="text-center">Customer List</h1>
+                        <p class="text-center"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <hr />
+                <table id="myTable" class="table table-bordered">
+
+                    <thead>
+                        <tr>
+                            <td>Id</td>
+                            <td>FirstName</td>
+                            <td>SurName</td>
+                            <td>Country</td>
+                            <td>Telefon Numarası</td>
+                            <td>Operasyonlar</td>
+                        </tr>
+                    </thead>
+
+                    <tbody id="customerList"> 
+                    @foreach (var customer in Model)
+                    {
+                        <tr>
+                            <td>@customer.ID</td>
+                            <td>@customer.Name</td>
+                            <td>@customer.SurName</td>
+                            <td>@customer.Country</td>
+                            <td>@customer.PhoneNumber</td>
+                            <td>
+                                <a data-customerid="@customer.ID" href="" class="btn btn-primary" id="btn-get-customer">Müşteri Getir</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+</body>
+</html>*@
+
